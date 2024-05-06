@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+
+
+
+
+<h2>Top Contributors</h2>
+<ul>
+    {% for user in top_contributors %}
+    <li>{{ user.first_name }} {{ user.last_name }}- Photos uploaded: {{ user.photo_count }}, Comments made: {{ user.comment_count }}, Total Score: {{ user.contribution_score }}</li>
+    {% endfor %}
+</ul>
+
+
+<h2>Popular Tags</h2>
+<ul>
+    {% for tag in tags %}
+    <li><a href="{% url 'view_photos_by_tag' tag.name %}">{{ tag.name }}</a> ({{ tag.photo_count }})</li>
+    {% endfor %}
+</ul>
+
+
+<h1>Shared Albums</h1>
+
+<form method="get" action="{% url 'search_results' %}">
+    <input type="text" name="tags" placeholder="Enter tags separated by spaces">
+    <button type="submit">Search by tags</button>
+</form>
+
+<form method="get" action="{% url 'comment_search' %}">
+    <input type="text" name="query" placeholder="Search comments...">
+    <button type="submit">Search comments</button>
+</form>
+
+{% for album in albums %}
+    <div class="album">
+        <h3>{{ album.name }}</h3>
+
+<div class="photo-gallery">
+    {% for photo in album.photos.all %}    
+    <div class="photo-item">
+        <img src="{{ photo.data.url }}" alt="Photo image">
+        <p>Uploaded by {{ photo.album.owner.first_name}} {{photo.album.owner.last_name }} on {{ photo.album.date_created }}</p>
+        <p>Caption: {{ photo.caption }}</p>
+        
+        <!-- Likes Section -->
+        <p>{{ photo.likes.count }} Likes</p>
+
+        <!--Hide like button if guest user-->
+        {% if user.is_authenticated %}
+        <form action="{% url 'home' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="like_photo_id" value="{{ photo.id }}">
+            <button type="submit">Like</button>
+        </form>
+        {% endif %}
+        <!-- end of if condition-->
+        <ul>
+            {% for like in photo.likes.all %}
+            <li>{{ like }}</li>
+            {% endfor %}
+        </ul>
+        
+        <form action="{% url 'home' %}" method="post">
+            {% csrf_token %}
+            <input type="hidden" name="photo_id" value="{{ photo.id }}">
+            <input type="hidden" name="comment_photo_id" value="{{ comment.id }}">  
+            {{ form.as_p }}
+            <button type="submit">Post Comment</button>
+        </form>
+    
+
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h2>Comments</h2>
+            {% for comment in photo.comments.all %}
+            <p>{{ comment }}</p> 
+            {% endfor %}
+        </div>
+        
+        
+    </div>
+    {% empty %}
+    <p>No photos to display.</p>
+    {% endfor %}
+    {% endfor %}
+
+</div>
+{% endblock %}
