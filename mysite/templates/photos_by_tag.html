@@ -25,17 +25,26 @@
     <p>Uploaded by {{ photo.album.owner.first_name }} {{ photo.album.owner.last_name }} on {{ photo.album.date_created }}</p>
     <p>Caption: {{ photo.caption }}</p>
     <p>{{ photo.likes.count }} Likes</p>
+
+        <!-- Prevent guest users from liking photos-->
+        {% if user.is_authenticated %}
         <form action="{% url 'home' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="like_photo_id" value="{{ photo.id }}">
             <button type="submit">Like</button>
         </form>
+
+        {% endif %}
+
+
         <ul>
             {% for like in photo.likes.all %}
             <li>{{ like }}</li>
             {% endfor %}
         </ul>
         
+        <!-- Prevent owners from commenting on their own photos-->
+        {% if user.is_authenticated and photo.album.owner == user.email%}
         <form action="{% url 'home' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="photo_id" value="{{ photo.id }}">
@@ -43,6 +52,8 @@
             {{ form.as_p }}
             <button type="submit">Post Comment</button>
         </form>
+
+        {% endif %}
     
 
         <!-- Comments Section -->

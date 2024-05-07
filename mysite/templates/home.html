@@ -9,7 +9,10 @@
 <h2>Top Contributors</h2>
 <ul>
     {% for user in top_contributors %}
-    <li>{{ user.first_name }} {{ user.last_name }}- Photos uploaded: {{ user.photo_count }}, Comments made: {{ user.comment_count }}, Total Score: {{ user.contribution_score }}</li>
+        <!-- Filter out results with users that have contribution score of 0-->
+        {%if user.contribution_score > 0%}
+            <li>{{ user.first_name }} {{ user.last_name }}- Photos uploaded: {{ user.photo_count }}, Comments made: {{ user.comment_count }}, Total Score: {{ user.contribution_score }}</li>
+        {% endif %}
     {% endfor %}
 </ul>
 
@@ -56,13 +59,17 @@
             <button type="submit">Like</button>
         </form>
         {% endif %}
+
         <!-- end of if condition-->
+
         <ul>
             {% for like in photo.likes.all %}
             <li>{{ like }}</li>
             {% endfor %}
         </ul>
         
+        <!-- Prevent owners from commenting on their own photos -->
+        {% if user.is_authenticated and photo.album.owner == user.email %}
         <form action="{% url 'home' %}" method="post">
             {% csrf_token %}
             <input type="hidden" name="photo_id" value="{{ photo.id }}">
@@ -70,6 +77,9 @@
             {{ form.as_p }}
             <button type="submit">Post Comment</button>
         </form>
+        {% endif %}
+
+        <!-- end of if condition-->
     
 
         <!-- Comments Section -->
